@@ -200,7 +200,7 @@
 				}
 			},
 
-			colors: ['#6CF', color, '#007200'],
+			colors: ['#6CF', color, '#007200', '#FF00FF'],
 
 			series: [{
 				name: `Num games`,
@@ -215,6 +215,10 @@
 				name: `Average score`,
 				type: 'spline',
 				data: progress1819[level].map(({timestamp, avg_score}) => [timestamp, parseInt(avg_score, 10)])
+			},{
+				name: `Modal score`,
+				type: 'spline',
+				data: progress1819[level].map(({timestamp, modal_score}) => [timestamp, modal_score])
 			}],
 
 			responsive: {
