@@ -70,15 +70,15 @@ class TetrisCompetitionAPI {
 	constructor() {
 		this.first_to = 3; // defaults to Best of 5
 
-		this.resetVictories();
+		this.resetVictories(false);
 	}
 
-	resetVictories() {
+	resetVictories(clear_field = true) {
 		this.victories = players.map(p => 0);
 
 		players.forEach((player, idx) => {
 			this._repaintVictories(idx);
-			player.clearField();
+			if (clear_field) player.clearField();
 		});
 	}
 
@@ -88,10 +88,6 @@ class TetrisCompetitionAPI {
 
 	setPeerId(player_idx, peerid) {
 		getPlayer(player_idx).setPeerId(peerid);
-	}
-
-	setSecondaryView() {
-		// overload as needed
 	}
 
 	setLogin(player_idx, login) {
@@ -169,6 +165,8 @@ class TetrisCompetitionAPI {
 
 		const hearts = player.dom.hearts;
 
+		if (!hearts || !hearts.childNodes) return;
+
 		// clear all the hearts
 		while (hearts.childNodes.length) {
 			hearts.removeChild(hearts.childNodes[0]);
@@ -209,7 +207,7 @@ class TetrisCompetitionAPI {
 
 // TODO: modularize this file better
 export default class Competition {
-	constructor(_players) {
+	constructor(_players, api_overrides = {}) {
 		this.players = players = _players;
 
 		this._onPlayerScoreChanged = this._onPlayerScoreChanged.bind(this);
@@ -218,8 +216,10 @@ export default class Competition {
 			this.has_video = !!(
 				QueryString.get('video') !== '0' && view_meta.get('video')
 			); // view_meta is a JS global (if it exists!) -- sort of gross
+			this.view_meta = view_meta;
 		} catch (err) {
 			this.has_video = false;
+			this.view_meta = new URLSearchParams({});
 		}
 
 		players.forEach(player => {
@@ -228,7 +228,9 @@ export default class Competition {
 
 		this.API = new TetrisCompetitionAPI();
 
-		this.connection = new Connection(null, this.has_video ? view_meta : null);
+		Object.assign(this.API, api_overrides);
+
+		this.connection = new Connection(null, this.view_meta);
 
 		this.connection.onMessage = frame => {
 			try {
